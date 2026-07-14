@@ -29,7 +29,7 @@ export default function BottomSheet({ open, onClose, title, children }: BottomSh
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"
           />
           {/* Sheet */}
           <motion.div
@@ -38,7 +38,7 @@ export default function BottomSheet({ open, onClose, title, children }: BottomSh
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl"
+            className="fixed bottom-0 left-0 right-0 z-[60] max-h-[85vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl"
           >
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-1">
