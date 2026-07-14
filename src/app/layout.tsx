@@ -16,7 +16,14 @@ export const metadata: Metadata = {
   title: "Quản Lý Chi Tiêu Cá Nhân",
   description: "Theo dõi thu nhập và chi tiêu hàng ngày một cách dễ dàng",
   manifest: "/manifest.json",
-  other: { "theme-color": "#2563eb" },
+  other: {
+    "theme-color": "#2563eb",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+  },
+  icons: {
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
 };
 
 function detectDevice(userAgent: string | null): DeviceType {
