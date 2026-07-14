@@ -12,6 +12,7 @@ const navItems = [
   { href: "/quan-tri/giao-dich", label: "💳 Giao dịch", icon: "💳" },
   { href: "/quan-tri/ngan-sach", label: "🎯 Ngân sách", icon: "🎯" },
   { href: "/quan-tri/muc-tieu", label: "🏆 Mục tiêu", icon: "🏆" },
+  { href: "/quan-tri/dinh-ky", label: "🔄 Định kỳ", icon: "🔄" },
   { href: "/quan-tri/danh-muc", label: "⚙️ Danh mục", icon: "⚙️" },
 ];
 

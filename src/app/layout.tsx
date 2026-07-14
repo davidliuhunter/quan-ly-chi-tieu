@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ToastProvider } from "@/components/Toast";
 import { DeviceProvider, type DeviceType } from "@/components/DeviceProvider";
+import PwaRegister from "@/components/PwaRegister";
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
@@ -14,6 +15,8 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Quản Lý Chi Tiêu Cá Nhân",
   description: "Theo dõi thu nhập và chi tiêu hàng ngày một cách dễ dàng",
+  manifest: "/manifest.json",
+  other: { "theme-color": "#2563eb" },
 };
 
 function detectDevice(userAgent: string | null): DeviceType {
@@ -39,6 +42,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ToastProvider>
             <DeviceProvider initialDevice={initialDevice}>
+              <PwaRegister />
               {children}
             </DeviceProvider>
           </ToastProvider>

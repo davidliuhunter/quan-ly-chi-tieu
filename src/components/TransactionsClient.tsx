@@ -25,11 +25,22 @@ export default function TransactionsClient({ transactions, categories }: Props) 
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [amountMin, setAmountMin] = useState("");
+  const [amountMax, setAmountMax] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => { if (sp.get("add") === "1") setShowForm(true); }, [sp]);
 
   const fCat = categories.filter((c) => filt === "all" || c.type === filt);
-  const fTx = transactions.filter((tx) => filt === "all" || tx.type === filt).filter((tx) => !q || tx.description?.toLowerCase().includes(q.toLowerCase()) || tx.category?.name?.toLowerCase().includes(q.toLowerCase()));
+  const fTx = transactions
+    .filter((tx) => filt === "all" || tx.type === filt)
+    .filter((tx) => !q || tx.description?.toLowerCase().includes(q.toLowerCase()) || tx.category?.name?.toLowerCase().includes(q.toLowerCase()))
+    .filter((tx) => !dateFrom || tx.transaction_date >= dateFrom)
+    .filter((tx) => !dateTo || tx.transaction_date <= dateTo)
+    .filter((tx) => !amountMin || tx.amount >= Number(amountMin))
+    .filter((tx) => !amountMax || tx.amount <= Number(amountMax));
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); setLoading(true); setErr("");
@@ -79,7 +90,18 @@ export default function TransactionsClient({ transactions, categories }: Props) 
         <div className="flex gap-1 bg-white/60 dark:bg-gray-800/60 rounded-xl p-1 border border-gray-200/50 dark:border-gray-700/50">
           {(["all","expense","income"] as const).map((f) => (<button key={f} onClick={() => setFilt(f)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all active:scale-95 ${filt===f?"bg-blue-600 text-white shadow-md":"text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>{f==="all"?"Tất cả":f==="expense"?"Chi tiêu":"Thu nhập"}</button>))}</div>
         <button onClick={add} className="btn-primary text-sm">+ Thêm giao dịch</button></div>
-      <input className="input-field" placeholder="🔍 Tìm theo mô tả hoặc danh mục..." value={q} onChange={(e) => setQ(e.target.value)} /></div>
+      <input className="input-field" placeholder="🔍 Tìm theo mô tả hoặc danh mục..." value={q} onChange={(e) => setQ(e.target.value)} />
+      <button onClick={() => setShowFilters(!showFilters)} className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+        {showFilters ? "Ẩn lọc nâng cao" : "Lọc nâng cao ▼"}
+      </button>
+      {showFilters && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+          <div><label className="text-xs text-gray-500">Từ ngày</label><input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} className="input-field !py-1.5 text-xs" /></div>
+          <div><label className="text-xs text-gray-500">Đến ngày</label><input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)} className="input-field !py-1.5 text-xs" /></div>
+          <div><label className="text-xs text-gray-500">Từ (VNĐ)</label><input type="number" placeholder="0" value={amountMin} onChange={e=>setAmountMin(e.target.value)} className="input-field !py-1.5 text-xs" /></div>
+          <div><label className="text-xs text-gray-500">Đến (VNĐ)</label><input type="number" placeholder="999tr" value={amountMax} onChange={e=>setAmountMax(e.target.value)} className="input-field !py-1.5 text-xs" /></div>
+        </div>
+      )}</div>
 
     {isDesktop && showForm && (<div className="card-glass"><h2 className="font-semibold text-gray-800 dark:text-gray-100 mb-4">{editing?"✏️ Sửa giao dịch":"➕ Thêm giao dịch mới"}</h2>{formContent()}</div>)}
     {!isDesktop && (<BottomSheet open={showForm} onClose={()=>{setShowForm(false);setEditing(null);}} title={editing?"Sửa giao dịch":"Thêm giao dịch"}>{formContent()}</BottomSheet>)}

@@ -9,6 +9,7 @@ const tabs = [
   { href: "/quan-tri/giao-dich", label: "💳", title: "Giao dịch" },
   { href: "/quan-tri/ngan-sach", label: "🎯", title: "Ngân sách" },
   { href: "/quan-tri/muc-tieu", label: "🏆", title: "Mục tiêu" },
+  { href: "/quan-tri/dinh-ky", label: "🔄", title: "Định kỳ" },
   { href: "/quan-tri/danh-muc", label: "⚙️", title: "Danh mục" },
 ];
 

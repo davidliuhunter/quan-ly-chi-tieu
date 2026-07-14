@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createBudget, updateBudget, deleteBudget } from "@/lib/actions";
+import { useToast } from "./Toast";
 import type { BudgetStatus, Category } from "@/lib/types";
 
 const formatMoney = (amount: number) =>
@@ -21,7 +22,22 @@ export default function BudgetClient({ budgetStatus, categories, currentMonth }:
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const { show: showToast } = useToast();
   const expenseCategories = categories.filter((c) => c.type === "expense");
+
+  const prevAlerted = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    budgetStatus.forEach((b) => {
+      const key = b.category_id + "_" + b.percentage;
+      if (prevAlerted.current.has(key)) return;
+      prevAlerted.current.add(key);
+      if (b.percentage >= 100) {
+        showToast(`🔴 ${b.category_icon} ${b.category_name} đã vượt ngân sách! (${b.percentage}%)`, "error");
+      } else if (b.percentage >= 80) {
+        showToast(`🟡 ${b.category_icon} ${b.category_name} sắp hết ngân sách (${b.percentage}%)`, "info");
+      }
+    });
+  }, [budgetStatus, showToast]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
