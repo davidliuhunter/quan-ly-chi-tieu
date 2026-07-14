@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/components/ThemeProvider";
 import { useDevice } from "@/components/DeviceProvider";
 import MobileBottomNav from "@/components/MobileBottomNav";
@@ -15,11 +14,6 @@ const navItems = [
   { href: "/quan-tri/muc-tieu", label: "🏆 Mục tiêu", icon: "🏆" },
   { href: "/quan-tri/danh-muc", label: "⚙️ Danh mục", icon: "⚙️" },
 ];
-
-const pageVariants = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.12, ease: "easeOut" } },
-};
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -45,11 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (loading) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-          className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full"
-        />
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -61,25 +51,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return pathname.startsWith(href);
   };
 
-  const currentIdx = navItems.findIndex((item) => isActive(item.href, item.exact));
-
-  const handleSwipe = (_: any, info: { offset: { x: number; y: number } }) => {
-    if (isDesktop) return;
-    // Only swipe if horizontal movement > vertical (ignore scrolls)
-    if (Math.abs(info.offset.x) < Math.abs(info.offset.y)) return;
-    const swipe = info.offset.x;
-    if (swipe < -60 && currentIdx < navItems.length - 1) {
-      router.push(navItems[currentIdx + 1].href);
-    } else if (swipe > 60 && currentIdx > 0) {
-      router.push(navItems[currentIdx - 1].href);
-    }
-  };
-
   return (
-    <motion.div
-      className="min-h-screen gradient-bg pb-20 md:pb-0 overflow-hidden"
-      onPanEnd={handleSwipe}
-    >
+    <div className="min-h-screen gradient-bg pb-20 md:pb-0">
       {/* Header */}
       <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -106,9 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="max-w-6xl mx-auto flex">
         {/* Desktop Sidebar */}
         {isDesktop && (
-          <motion.aside
-            initial={{ x: -60, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
+          <aside
             className={`fixed left-0 top-14 bottom-0 z-10 bg-white/60 dark:bg-gray-900/60 backdrop-blur-2xl border-r border-gray-200/50 dark:border-gray-800/50 flex flex-col py-4 transition-all duration-200 ${
               sidebarCollapsed ? "w-16" : "w-56"
             }`}
@@ -142,7 +113,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </p>
               )}
             </div>
-          </motion.aside>
+          </aside>
         )}
 
         {/* Main Content */}
@@ -168,22 +139,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ))}
           </nav>
 
-          {/* Animated page content */}
-          <AnimatePresence>
-            <motion.div
-              key={pathname}
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          {/* Page content with CSS fade transition */}
+          <div
+            key={pathname}
+            className="animate-fadeIn"
+          >
+            {children}
+          </div>
         </main>
       </div>
 
       {/* Mobile Bottom Nav (only on mobile) */}
       {!isDesktop && <MobileBottomNav />}
-    </motion.div>
+    </div>
   );
 }

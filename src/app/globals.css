@@ -46,3 +46,11 @@
            dark:from-gray-950 dark:via-gray-900 dark:to-blue-950;
   }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
