@@ -21,13 +21,15 @@ export default function FormattedNumberInput({
 }: Props) {
   const [display, setDisplay] = useState("");
 
+const comma = new Intl.NumberFormat("en-US"); // "en-US" dùng dấu phẩy
+
   useEffect(() => {
-    if (value !== undefined) setDisplay(value.toLocaleString("vi-VN"));
+    if (value !== undefined) setDisplay(comma.format(value));
   }, [value]);
 
   const handleChange = (val: string) => {
     const raw = val.replace(/,/g, "").replace(/\D/g, "");
-    setDisplay(raw ? Number(raw).toLocaleString("vi-VN") : "");
+    setDisplay(raw ? comma.format(Number(raw)) : "");
     if (onChange) onChange(Number(raw));
   };
 

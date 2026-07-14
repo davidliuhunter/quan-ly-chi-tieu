@@ -34,8 +34,8 @@ export default function TransactionsClient({ transactions, categories }: Props) 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); setLoading(true); setErr("");
     const fd = new FormData(e.currentTarget);
-    const raw = fd.get("amount_raw") as string;
-    fd.set("amount", (raw || fd.get("amount")?.toString().replace(/,/g, "") || "0").trim());
+    const raw = (fd.get("amount_raw") as string) || (fd.get("amount") as string) || "0";
+    fd.set("amount", raw.replace(/[,.]/g, "").trim()); // bỏ cả dấu phẩy và chấm
     const r = editing ? await updateTransaction(editing.id, fd) : await createTransaction(fd);
     if (!r.success) setErr(r.error ?? "Lỗi"); else { setShowForm(false); setEditing(null); }
     setLoading(false);
