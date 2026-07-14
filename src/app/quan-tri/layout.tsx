@@ -13,7 +13,7 @@ const navItems = [
   { href: "/quan-tri/giao-dich", label: "💳 Giao dịch", icon: "💳" },
   { href: "/quan-tri/ngan-sach", label: "🎯 Ngân sách", icon: "🎯" },
   { href: "/quan-tri/muc-tieu", label: "🏆 Mục tiêu", icon: "🏆" },
-  { href: "/quan-tri/danh-muc", label: "📂 Danh mục", icon: "📂" },
+  { href: "/quan-tri/danh-muc", label: "⚙️ Danh mục", icon: "⚙️" },
 ];
 
 const pageVariants = {
@@ -64,12 +64,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const currentIdx = navItems.findIndex((item) => isActive(item.href, item.exact));
 
-  const handleSwipe = (_: any, info: { offset: { x: number } }) => {
+  const handleSwipe = (_: any, info: { offset: { x: number; y: number } }) => {
     if (isDesktop) return;
+    // Only swipe if horizontal movement > vertical (ignore scrolls)
+    if (Math.abs(info.offset.x) < Math.abs(info.offset.y)) return;
     const swipe = info.offset.x;
-    if (swipe < -80 && currentIdx < navItems.length - 1) {
+    if (swipe < -60 && currentIdx < navItems.length - 1) {
       router.push(navItems[currentIdx + 1].href);
-    } else if (swipe > 80 && currentIdx > 0) {
+    } else if (swipe > 60 && currentIdx > 0) {
       router.push(navItems[currentIdx - 1].href);
     }
   };

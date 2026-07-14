@@ -9,13 +9,12 @@ const tabs = [
   { href: "/quan-tri/giao-dich", label: "💳", title: "Giao dịch" },
   { href: "/quan-tri/ngan-sach", label: "🎯", title: "Ngân sách" },
   { href: "/quan-tri/muc-tieu", label: "🏆", title: "Mục tiêu" },
-  { href: "/quan-tri/danh-muc", label: "📂", title: "Danh mục" },
+  { href: "/quan-tri/danh-muc", label: "⚙️", title: "Danh mục" },
 ];
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { theme } = useTheme();
 
   const isActive = (href: string) => {
     if (href === "/quan-tri") return pathname === "/quan-tri";
@@ -23,8 +22,8 @@ export default function MobileBottomNav() {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 safe-area-bottom">
-      <div className="flex items-center justify-around h-16">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-700/50 safe-area-bottom">
+      <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
         {tabs.map((tab) => (
           <button
             key={tab.href}
