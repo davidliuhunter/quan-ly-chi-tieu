@@ -1,4 +1,5 @@
 # Dependencies
+/node_modules/
 /src/node_modules/
 /src/.pnp
 /src/.pnp.js
