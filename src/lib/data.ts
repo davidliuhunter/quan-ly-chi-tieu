@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from 'next/cache';
 import { supabase, isConfigured } from './supabase';
 import { mockCategories, mockTransactions } from './mock-data';
-import type { Category, Transaction, MonthlySummary, CategorySummary } from './types';
+import type { Category, Transaction, MonthlySummary, CategorySummary, BudgetStatus, SavingsGoal, TotalSavings, RecurringTransaction } from './types';
 
 function logError(label: string, error: { message: string } | null) {
   if (error) console.error(`[supabase:${label}] ${error.message}`);
@@ -114,4 +114,79 @@ export async function getCategorySummary(
   });
   logError('getCategorySummary', error);
   return (data as CategorySummary[]) ?? [];
+}
+
+// ─── Ngân sách ───────────────────────────────────────────────────────────────
+
+const mockBudgetStatus: BudgetStatus[] = [
+  { category_id: 'cat-1', category_name: 'Ăn uống', category_icon: '🍜', category_color: '#ef4444', limit_amount: 3000000, spent_amount: 1500000, percentage: 50 },
+  { category_id: 'cat-2', category_name: 'Di chuyển', category_icon: '🚗', category_color: '#f97316', limit_amount: 1000000, spent_amount: 850000, percentage: 85 },
+  { category_id: 'cat-3', category_name: 'Mua sắm', category_icon: '🛒', category_color: '#8b5cf6', limit_amount: 2000000, spent_amount: 600000, percentage: 30 },
+  { category_id: 'cat-4', category_name: 'Giải trí', category_icon: '🎮', category_color: '#ec4899', limit_amount: 1500000, spent_amount: 1200000, percentage: 80 },
+];
+
+export async function getBudgetStatus(month: string): Promise<BudgetStatus[]> {
+  noStore();
+  if (!isConfigured || !supabase) return mockBudgetStatus;
+
+  const { data, error } = await supabase.rpc('get_budget_status', { month_param: month });
+  logError('getBudgetStatus', error);
+  return (data as BudgetStatus[]) ?? [];
+}
+
+// ─── Tiết kiệm ───────────────────────────────────────────────────────────────
+
+const mockSavingsGoals: SavingsGoal[] = [
+  { id: 'goal-1', name: 'Mua laptop mới', target_amount: 30000000, current_amount: 12000000, deadline: '2026-12-31', icon: '💻', color: '#3b82f6', is_completed: false, created_at: '2026-01-01' },
+  { id: 'goal-2', name: 'Du lịch Đà Lạt', target_amount: 10000000, current_amount: 8000000, deadline: '2026-09-30', icon: '✈️', color: '#22c55e', is_completed: false, created_at: '2026-03-01' },
+  { id: 'goal-3', name: 'Quỹ khẩn cấp', target_amount: 50000000, current_amount: 25000000, deadline: null, icon: '🛡️', color: '#f59e0b', is_completed: false, created_at: '2026-01-01' },
+];
+
+export async function getSavingsGoals(): Promise<SavingsGoal[]> {
+  noStore();
+  if (!isConfigured || !supabase) return mockSavingsGoals;
+
+  const { data, error } = await supabase
+    .from('savings_goals')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  logError('getSavingsGoals', error);
+  return (data as SavingsGoal[]) ?? [];
+}
+
+const mockTotalSavings: TotalSavings = {
+  total_saved: 45000000,
+  total_target: 90000000,
+  overall_percentage: 50,
+};
+
+export async function getTotalSavings(): Promise<TotalSavings> {
+  noStore();
+  if (!isConfigured || !supabase) return mockTotalSavings;
+
+  const { data, error } = await supabase.rpc('get_total_savings');
+  logError('getTotalSavings', error);
+  return (data as TotalSavings) ?? { total_saved: 0, total_target: 0, overall_percentage: 0 };
+}
+
+// ─── Giao dịch định kỳ ──────────────────────────────────────────────────────
+
+const mockRecurringTransactions: RecurringTransaction[] = [
+  { id: 'rec-1', amount: 5000000, type: 'expense', category_id: 'cat-5', description: 'Tiền thuê nhà', frequency: 'monthly', next_date: '2026-08-01', is_active: true, created_at: '2026-01-01' },
+  { id: 'rec-2', amount: 500000, type: 'expense', category_id: 'cat-1', description: 'Tiền ăn hàng tuần', frequency: 'weekly', next_date: '2026-07-21', is_active: true, created_at: '2026-06-01' },
+  { id: 'rec-3', amount: 15000000, type: 'income', category_id: 'cat-7', description: 'Lương hàng tháng', frequency: 'monthly', next_date: '2026-08-01', is_active: true, created_at: '2026-01-01' },
+];
+
+export async function getRecurringTransactions(): Promise<RecurringTransaction[]> {
+  noStore();
+  if (!isConfigured || !supabase) return mockRecurringTransactions;
+
+  const { data, error } = await supabase
+    .from('recurring_transactions')
+    .select('*, category:categories(*)')
+    .order('next_date', { ascending: true });
+
+  logError('getRecurringTransactions', error);
+  return (data as RecurringTransaction[]) ?? [];
 }
