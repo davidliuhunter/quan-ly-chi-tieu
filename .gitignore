@@ -1,0 +1,35 @@
+# Dependencies
+/src/node_modules/
+/src/.pnp
+/src/.pnp.js
+
+# Next.js
+/src/.next/
+/src/out/
+
+# Env
+/src/.env.local
+/src/.env*.local
+/src/.env
+
+# Vercel
+/src/.vercel/
+
+# TS cache
+/src/*.tsbuildinfo
+
+# Logs
+*.log
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Project docs (local only)
+DEPLOY.md
+DEV-COMMANDS.md
+PROJECT-INFO.md
+LOCAL-SECRETS.md
