@@ -1,22 +1,31 @@
 # Dependencies
 /node_modules/
 /src/node_modules/
+/.pnp
 /src/.pnp
+/.pnp.js
 /src/.pnp.js
 
 # Next.js
+/.next/
 /src/.next/
+/out/
 /src/out/
 
 # Env
+.env.local
+.env*.local
+.env
 /src/.env.local
 /src/.env*.local
 /src/.env
 
 # Vercel
+/.vercel/
 /src/.vercel/
 
 # TS cache
+*.tsbuildinfo
 /src/*.tsbuildinfo
 
 # Logs
