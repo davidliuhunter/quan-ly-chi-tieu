@@ -17,9 +17,8 @@ const navItems = [
 ];
 
 const pageVariants = {
-  initial: { opacity: 0, x: 20 },
-  animate: { opacity: 1, x: 0, transition: { duration: 0.15, ease: "easeOut" } },
-  exit: { opacity: 0, x: -20, transition: { duration: 0.1, ease: "easeIn" } },
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.12, ease: "easeOut" } },
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -170,13 +169,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
 
           {/* Animated page content */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             <motion.div
               key={pathname}
               variants={pageVariants}
               initial="initial"
               animate="animate"
-              exit="exit"
             >
               {children}
             </motion.div>
