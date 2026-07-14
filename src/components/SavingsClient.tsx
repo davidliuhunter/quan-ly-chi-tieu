@@ -98,7 +98,7 @@ export default function SavingsClient({ goals, totalSavings }: Props) {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5"
+        className="card-glass p-5"
       >
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
           Tổng quan tiết kiệm
@@ -150,7 +150,7 @@ export default function SavingsClient({ goals, totalSavings }: Props) {
             onSubmit={handleSubmit}
             className="overflow-hidden"
           >
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+            <div className="card-glass p-4 space-y-3">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                 {editing ? "Sửa mục tiêu" : "Thêm mục tiêu mới"}
               </h3>
@@ -276,9 +276,11 @@ export default function SavingsClient({ goals, totalSavings }: Props) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-8 text-gray-500 dark:text-gray-400"
+          className="text-center py-12 text-gray-500 dark:text-gray-400"
         >
-          Chưa có mục tiêu tiết kiệm nào.
+          <div className="text-5xl mb-3">🐷</div>
+          <p className="font-medium">Chưa có mục tiêu tiết kiệm nào</p>
+          <p className="text-sm mt-1">Tạo mục tiêu để bắt đầu hành trình tiết kiệm</p>
         </motion.div>
       ) : (
         <>
@@ -303,7 +305,7 @@ export default function SavingsClient({ goals, totalSavings }: Props) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: -50 }}
                         transition={{ duration: 0.2, delay: index * 0.05 }}
-                        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
+                        className="card-glass p-4"
                       >
                         <div className="flex items-start gap-3">
                           <span className="text-2xl">{goal.icon}</span>

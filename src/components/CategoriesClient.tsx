@@ -83,8 +83,8 @@ export default function CategoriesClient({ categories }: Props) {
       </div>
 
       {showForm && (
-        <div className="card">
-          <h2 className="font-semibold text-gray-700 mb-4">
+        <div className="card-glass">
+          <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-4">
             {editing ? "✏️ Sửa danh mục" : "➕ Thêm danh mục mới"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -159,7 +159,7 @@ export default function CategoriesClient({ categories }: Props) {
       {/* Category list */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {filtered.map((cat) => (
-          <div key={cat.id} className="card flex items-center justify-between group">
+          <div key={cat.id} className="card-glass flex items-center justify-between group">
             <div className="flex items-center gap-3">
               <span className="text-2xl">{cat.icon}</span>
               <div>
@@ -188,7 +188,11 @@ export default function CategoriesClient({ categories }: Props) {
       </div>
 
       {filtered.length === 0 && (
-        <p className="text-gray-400 text-center py-8">Chưa có danh mục nào</p>
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+          <div className="text-5xl mb-3">📂</div>
+          <p className="font-medium">Chưa có danh mục nào</p>
+          <p className="text-sm mt-1">Thêm danh mục để phân loại giao dịch</p>
+        </div>
       )}
     </div>
   );

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ToastProvider } from "@/components/Toast";
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
@@ -21,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="vi" className={inter.variable} suppressHydrationWarning>
       <body className="font-sans bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider><ToastProvider>{children}</ToastProvider></ThemeProvider>
       </body>
     </html>
   );

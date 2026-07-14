@@ -49,8 +49,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return pathname.startsWith(href);
   };
 
+  const currentIdx = navItems.findIndex((item) => isActive(item.href, item.exact));
+
+  const handleSwipe = (_: any, info: { offset: { x: number } }) => {
+    const swipe = info.offset.x;
+    if (swipe < -80 && currentIdx < navItems.length - 1) {
+      router.push(navItems[currentIdx + 1].href);
+    } else if (swipe > 80 && currentIdx > 0) {
+      router.push(navItems[currentIdx - 1].href);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20 md:pb-0">
+    <motion.div
+      className="min-h-screen gradient-bg pb-20 md:pb-0 overflow-hidden"
+      onPanEnd={handleSwipe}
+    >
       {/* Header */}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-20">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -107,6 +121,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Mobile Bottom Nav */}
       <MobileBottomNav />
-    </div>
+    </motion.div>
   );
 }

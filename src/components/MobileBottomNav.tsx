@@ -29,7 +29,7 @@ export default function MobileBottomNav() {
           <button
             key={tab.href}
             onClick={() => router.push(tab.href)}
-            className="relative flex flex-col items-center justify-center flex-1 h-full"
+            className="relative flex flex-col items-center justify-center flex-1 h-full min-h-[48px] active:scale-90 transition-transform"
           >
             {isActive(tab.href) && (
               <motion.div

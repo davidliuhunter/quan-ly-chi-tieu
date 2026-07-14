@@ -98,7 +98,7 @@ export default function BudgetClient({ budgetStatus, categories, currentMonth }:
             onSubmit={handleSubmit}
             className="overflow-hidden"
           >
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-2xl rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/20 border border-white/40 dark:border-gray-700/30 p-4 space-y-3">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                 {editing ? "Sửa ngân sách" : "Thêm ngân sách mới"}
               </h3>
@@ -180,9 +180,11 @@ export default function BudgetClient({ budgetStatus, categories, currentMonth }:
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center py-8 text-gray-500 dark:text-gray-400"
+            className="text-center py-12 text-gray-500 dark:text-gray-400"
           >
-            Chưa có ngân sách nào cho tháng này.
+            <div className="text-5xl mb-3">🎯</div>
+            <p className="font-medium">Chưa có ngân sách nào cho tháng này</p>
+            <p className="text-sm mt-1">Thêm ngân sách để kiểm soát chi tiêu tốt hơn</p>
           </motion.div>
         ) : (
           <div className="space-y-2">
@@ -193,7 +195,7 @@ export default function BudgetClient({ budgetStatus, categories, currentMonth }:
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.2, delay: index * 0.05 }}
-                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+                className="card-glass overflow-hidden"
               >
                 <div className="flex items-center gap-3 p-4">
                   <span className="text-2xl">{cat.category_icon}</span>
