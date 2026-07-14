@@ -28,6 +28,14 @@
 *.tsbuildinfo
 /src/*.tsbuildinfo
 
+# Playwright
+/test-results/
+/playwright-report/
+/test-*.log
+/test-*.txt
+/test-*.json
+/build-log.txt
+
 # Logs
 *.log
 
