@@ -1,0 +1,96 @@
+@model List<QuanLyChiTieu.Mvc.Models.Entities.GiaoDichDinhKy>
+@{
+    ViewData["Title"] = "Định kỳ";
+    var categories = ViewBag.Categories as List<QuanLyChiTieu.Mvc.Models.Entities.DanhMuc>;
+    var freqLabels = new Dictionary<string, string> { ["daily"] = "Hàng ngày", ["weekly"] = "Hàng tuần", ["monthly"] = "Hàng tháng", ["yearly"] = "Hàng năm" };
+}
+
+<div class="space-y-4">
+    <div class="flex items-center justify-between">
+        <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100">🔄 Giao dịch định kỳ</h1>
+        <button onclick="openForm()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 active:scale-95 transition-all">+ Thêm mới</button>
+    </div>
+
+    <div class="space-y-2">
+        @foreach (var item in Model)
+        {
+            <div class="card-glass flex items-center justify-between @(!item.IsActive ? "opacity-50" : "")">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">@(item.DanhMuc?.Icon ?? "📌")</span>
+                    <div>
+                        <p class="text-sm font-medium text-gray-800 dark:text-gray-200">@(item.DanhMuc?.Name ?? "Không danh mục")</p>
+                        <p class="text-xs text-gray-400">@(freqLabels.GetValueOrDefault(item.Frequency, item.Frequency)) · Kỳ tới: @item.NextDate.ToString("dd/MM/yyyy")</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="@(item.Type == "income" ? "text-income" : "text-expense") font-semibold text-sm">@(item.Type == "income" ? "+" : "-")@item.Amount.ToString("N0")₫</span>
+                    <form method="post" action="/DinhKy/Toggle" style="display:inline">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="submit" class="btn-ghost btn-sm">@(item.IsActive ? "⏸️" : "▶️")</button>
+                    </form>
+                    <button onclick="editDk('@item.Id',@item.Amount,'@item.Type','@(item.CategoryId?.ToString()??"")','@(item.Description??"")','@item.Frequency','@item.NextDate.ToString("yyyy-MM-dd")',@item.IsActive.ToString().ToLower())" class="btn-ghost btn-sm">✏️</button>
+                    <form method="post" action="/DinhKy/Delete" style="display:inline">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="button" class="btn-ghost btn-sm text-red-500" onclick="showConfirm('Xóa giao dịch định kỳ này?',()=>this.form.submit())">🗑️</button>
+                    </form>
+                </div>
+            </div>
+        }
+        @if (Model.Count == 0)
+        {
+            <div class="text-center py-12 text-gray-400"><p class="text-4xl mb-2">📭</p><p>Chưa có giao dịch định kỳ nào</p></div>
+        }
+    </div>
+</div>
+
+<div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div class="card-glass w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h3 id="modalTitle" class="font-semibold text-gray-800 dark:text-gray-100">Thêm giao dịch định kỳ</h3>
+            <button onclick="closeForm()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        </div>
+        <form id="dkForm" method="post" class="space-y-4">
+            <input type="hidden" name="Id" id="dkId" />
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loại</label>
+                <select name="Type" id="dkType" class="input-field"><option value="expense">Chi tiêu</option><option value="income">Thu nhập</option></select></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Số tiền</label><input name="Amount" id="dkAmount" type="number" class="input-field" required min="1" /></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Danh mục</label>
+                <select name="CategoryId" id="dkCat" class="input-field"><option value="">-- Chọn --</option>
+                    @foreach (var c in categories ?? new()) { <option value="@c.Id">@c.Icon @c.Name</option> }
+                </select></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tần suất</label>
+                <select name="Frequency" id="dkFreq" class="input-field">
+                    @foreach (var f in freqLabels) { <option value="@f.Key">@f.Value</option> }
+                </select></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kỳ tiếp theo</label><input name="NextDate" id="dkNext" type="date" class="input-field" required /></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ghi chú</label><input name="Description" id="dkDesc" class="input-field" /></div>
+            <div class="flex items-center gap-2"><input name="IsActive" id="dkActive" type="checkbox" value="true" checked class="w-4 h-4" /><label class="text-sm text-gray-700 dark:text-gray-300">Đang hoạt động</label></div>
+            <button type="submit" class="bg-blue-600 text-white w-full px-4 py-2.5 rounded-xl font-medium hover:bg-blue-700 active:scale-95 transition-all">Lưu</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openForm() {
+            document.getElementById('modalTitle').textContent = 'Thêm giao dịch định kỳ';
+            document.getElementById('dkForm').action = '/DinhKy/Create';
+            document.getElementById('dkId').value = ''; document.getElementById('dkAmount').value = '';
+            document.getElementById('dkCat').value = ''; document.getElementById('dkDesc').value = '';
+            document.getElementById('dkFreq').value = 'monthly'; document.getElementById('dkNext').value = new Date().toISOString().slice(0,10);
+            document.getElementById('dkActive').checked = true; document.getElementById('dkType').value = 'expense';
+            document.getElementById('modal').classList.remove('hidden'); document.getElementById('modal').classList.add('flex');
+        }
+        function closeForm() { document.getElementById('modal').classList.add('hidden'); document.getElementById('modal').classList.remove('flex'); }
+        function editDk(id, amount, type, catId, desc, freq, next, active) {
+            document.getElementById('modalTitle').textContent = 'Sửa giao dịch định kỳ';
+            document.getElementById('dkForm').action = '/DinhKy/Edit';
+            document.getElementById('dkId').value = id; document.getElementById('dkAmount').value = amount;
+            document.getElementById('dkType').value = type; document.getElementById('dkCat').value = catId;
+            document.getElementById('dkDesc').value = desc; document.getElementById('dkFreq').value = freq;
+            document.getElementById('dkNext').value = next; document.getElementById('dkActive').checked = active;
+            document.getElementById('modal').classList.remove('hidden'); document.getElementById('modal').classList.add('flex');
+        }
+        document.getElementById('modal').addEventListener('click', function(e) { if (e.target === this) closeForm(); });
+    </script>
+}

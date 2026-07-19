@@ -1,0 +1,179 @@
+@model QuanLyChiTieu.Mvc.Models.ViewModels.GiaoDichListVm
+@{
+    ViewData["Title"] = "Giao dịch";
+    var categories = ViewBag.Categories as List<QuanLyChiTieu.Mvc.Models.Entities.DanhMuc>;
+    var filterType = Model?.FilterType ?? "all";
+    var incomeCats = categories?.Where(c => c.Type == "income").ToList() ?? new();
+    var expenseCats = categories?.Where(c => c.Type == "expense").ToList() ?? new();
+    var displayCats = filterType == "income" ? incomeCats : expenseCats;
+}
+
+<div class="space-y-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100">💳 Giao dịch</h1>
+        <button onclick="openForm()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 active:scale-95 transition-all">+ Thêm mới</button>
+    </div>
+
+    <!-- Filter bar -->
+    <form method="get" class="card-glass space-y-3">
+        <div class="flex flex-wrap gap-2">
+            <a href="?filterType=all" class="px-3 py-1.5 rounded-lg text-sm @(filterType == "all" ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400")">Tất cả</a>
+            <a href="?filterType=income" class="px-3 py-1.5 rounded-lg text-sm @(filterType == "income" ? "bg-income text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400")">Thu nhập</a>
+            <a href="?filterType=expense" class="px-3 py-1.5 rounded-lg text-sm @(filterType == "expense" ? "bg-expense text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400")">Chi tiêu</a>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <input type="hidden" name="filterType" value="@filterType" />
+            <input name="q" value="@Model?.SearchQuery" class="input-field flex-1 min-w-[200px]" placeholder="Tìm kiếm..." />
+            <input name="dateFrom" type="date" value="@Model?.DateFrom?.ToString("yyyy-MM-dd")" class="input-field w-auto" />
+            <input name="dateTo" type="date" value="@Model?.DateTo?.ToString("yyyy-MM-dd")" class="input-field w-auto" />
+            <input name="amountMin" type="number" value="@Model?.AmountMin" class="input-field w-28" placeholder="Từ" />
+            <input name="amountMax" type="number" value="@Model?.AmountMax" class="input-field w-28" placeholder="Đến" />
+            <button type="submit" class="btn-ghost text-sm">🔍 Lọc</button>
+        </div>
+    </form>
+
+    <!-- Transaction list -->
+    <div class="space-y-2">
+        @if (Model?.Items.Count > 0)
+        {
+            foreach (var tx in Model.Items)
+            {
+                <div class="card-glass flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">@(tx.CategoryIcon ?? "📌")</span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800 dark:text-gray-200">@(tx.CategoryName ?? "Không danh mục")</p>
+                            <p class="text-xs text-gray-400">@(tx.Description ?? "") · @tx.TransactionDate</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="@(tx.Type == "income" ? "text-income" : "text-expense") font-semibold text-sm">
+                            @(tx.Type == "income" ? "+" : "-")@tx.Amount.ToString("N0")₫
+                        </span>
+                        <button onclick="editTx('@tx.Id', @tx.Amount, '@tx.Type', '@(tx.CategoryId?.ToString() ?? "")', '@(tx.Description ?? "")', '@tx.TransactionDate')" class="btn-ghost btn-sm">✏️</button>
+                        <form method="post" action="/GiaoDich/Delete" style="display:inline">
+                            <input type="hidden" name="id" value="@tx.Id" />
+                            <button type="button" class="btn-ghost btn-sm text-red-500" onclick="showConfirm('Xóa giao dịch này?',()=>this.form.submit())">🗑️</button>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-12 text-gray-400">
+                <p class="text-4xl mb-2">📭</p>
+                <p>Chưa có giao dịch nào</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Form -->
+<div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div class="card-glass w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h3 id="modalTitle" class="font-semibold text-gray-800 dark:text-gray-100">Thêm giao dịch</h3>
+            <button onclick="closeForm()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        </div>
+        <form id="txForm" method="post" class="space-y-4">
+            <input type="hidden" name="Id" id="txId" />
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loại</label>
+                <select name="Type" id="txType" class="input-field" onchange="onTypeChange()">
+                    <option value="expense">Chi tiêu</option>
+                    <option value="income">Thu nhập</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Số tiền (VNĐ)</label>
+                <input name="Amount" id="txAmount" type="number" class="input-field" placeholder="VD: 50000" required min="1" />
+                <div class="flex flex-wrap gap-2 mt-2" id="quickAmounts">
+                    @foreach (var amt in new long[] { 10000, 20000, 50000, 100000, 200000, 500000 })
+                    {
+                        <button type="button" onclick="setAmount(@amt)" class="px-3 py-1.5 text-xs rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600">@amt.ToString("N0")</button>
+                    }
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Danh mục</label>
+                <select name="CategoryId" id="txCategory" class="input-field">
+                    <option value="">-- Chọn danh mục --</option>
+                    @foreach (var c in displayCats)
+                    {
+                        <option value="@c.Id">@c.Icon @c.Name</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ngày</label>
+                <input name="TransactionDate" id="txDate" type="date" class="input-field" required />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ghi chú</label>
+                <input name="Description" id="txDesc" class="input-field" placeholder="VD: Cơm trưa văn phòng" />
+            </div>
+            <button type="submit" class="bg-blue-600 text-white w-full px-4 py-2.5 rounded-xl font-medium hover:bg-blue-700 active:scale-95 transition-all">Lưu</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const incomeCats = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(incomeCats.Select(c => new { id = c.Id.ToString(), icon = c.Icon, name = c.Name })));
+        const expenseCats = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(expenseCats.Select(c => new { id = c.Id.ToString(), icon = c.Icon, name = c.Name })));
+
+        function openForm() {
+            document.getElementById('modalTitle').textContent = 'Thêm giao dịch';
+            document.getElementById('txForm').action = '/GiaoDich/Create';
+            document.getElementById('txId').value = '';
+            document.getElementById('txType').value = '@filterType' === 'income' ? 'income' : 'expense';
+            document.getElementById('txAmount').value = '';
+            document.getElementById('txDesc').value = '';
+            document.getElementById('txDate').value = new Date().toISOString().slice(0,10);
+            document.getElementById('txCategory').value = '';
+            onTypeChange();
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+        }
+
+        function closeForm() {
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('modal').classList.remove('flex');
+        }
+
+        function editTx(id, amount, type, catId, desc, date) {
+            document.getElementById('modalTitle').textContent = 'Sửa giao dịch';
+            document.getElementById('txForm').action = '/GiaoDich/Edit';
+            document.getElementById('txId').value = id;
+            document.getElementById('txType').value = type;
+            document.getElementById('txAmount').value = amount;
+            document.getElementById('txDesc').value = desc;
+            document.getElementById('txDate').value = date.split('/').reverse().join('-');
+            document.getElementById('txCategory').value = catId || '';
+            onTypeChange();
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+        }
+
+        function setAmount(amt) {
+            document.getElementById('txAmount').value = amt;
+        }
+
+        function onTypeChange() {
+            const type = document.getElementById('txType').value;
+            const cats = type === 'income' ? incomeCats : expenseCats;
+            const sel = document.getElementById('txCategory');
+            const currentVal = sel.value;
+            sel.innerHTML = '<option value="">-- Chọn danh mục --</option>';
+            cats.forEach(c => {
+                sel.innerHTML += `<option value="${c.id}" ${c.id === currentVal ? 'selected' : ''}>${c.icon} ${c.name}</option>`;
+            });
+        }
+
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) closeForm();
+        });
+    </script>
+}

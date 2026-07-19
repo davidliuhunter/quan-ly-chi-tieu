@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi" class="@(Context.Session.GetString("Theme") == "dark" ? "dark" : "")">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Quản Lý Chi Tiêu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        income: { DEFAULT: '#22c55e', light: '#dcfce7' },
+                        expense: { DEFAULT: '#ef4444', light: '#fee2e2' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .btn-primary { background-color:#2563eb; color:#fff; padding:0.5rem 1rem; border-radius:0.75rem; font-weight:500; }
+        .btn-primary:hover { background-color:#1d4ed8; }
+        .btn-danger { background-color:#ef4444; color:#fff; padding:0.5rem 1rem; border-radius:0.75rem; font-weight:500; }
+        .btn-danger:hover { background-color:#dc2626; }
+        .btn-ghost { padding:0.5rem 1rem; border-radius:0.75rem; font-weight:500; color:#6b7280; }
+        .btn-ghost:hover { background-color:#f3f4f6; }
+        .dark .btn-ghost:hover { background-color:#1f2937; }
+        .btn-sm { padding:0.25rem 0.75rem; font-size:0.875rem; border-radius:0.75rem; }
+        .input-field { width:100%; padding:0.625rem 1rem; height:2.75rem; border:1px solid #e5e7eb; border-radius:0.75rem; background:#fff; color:#111827; font-size:0.875rem; transition:all 0.15s; }
+        .input-field:focus { outline:none; ring:2px solid rgba(59,130,246,0.5); border-color:#3b82f6; }
+        .dark .input-field { background:#1f2937; color:#f3f4f6; border-color:#374151; }
+        .dark .input-field:focus { border-color:#3b82f6; }
+        .dark select.input-field { color:#f3f4f6; }
+        .dark select.input-field option { background:#1f2937; color:#f3f4f6; }
+        .card-glass { background:rgba(255,255,255,0.6); backdrop-filter:blur(16px); border-radius:1rem; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); border:1px solid rgba(255,255,255,0.4); padding:1.25rem; }
+        .dark .card-glass { background:rgba(17,24,39,0.6); border-color:rgba(55,65,81,0.3); box-shadow:0 4px 6px -1px rgba(0,0,0,0.2); }
+        .gradient-bg { background:linear-gradient(135deg, #eff6ff, #fff, #eef2ff); }
+        .dark .gradient-bg { background:linear-gradient(135deg, #030712, #111827, #172554); }
+        .text-income { color:#22c55e; }
+        .text-expense { color:#ef4444; }
+        .badge-income { background:#dcfce7; color:#16a34a; padding:0.125rem 0.5rem; border-radius:0.5rem; font-size:0.75rem; font-weight:500; }
+        .badge-expense { background:#fee2e2; color:#dc2626; padding:0.125rem 0.5rem; border-radius:0.5rem; font-size:0.75rem; font-weight:500; }
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        .sidebar-link { display:flex; align-items:center; gap:0.75rem; padding:0.625rem 1rem; border-radius:0.75rem; color:#6b7280; transition:all 0.15s; }
+        .sidebar-link:hover { background:#f3f4f6; color:#111827; }
+        .dark .sidebar-link:hover { background:#1f2937; color:#f3f4f6; }
+        .sidebar-link.active { background:#eff6ff; color:#2563eb; font-weight:600; }
+        .dark .sidebar-link.active { background:#1e3a5f; color:#60a5fa; }
+        .mobile-nav-link { display:flex; flex-direction:column; align-items:center; gap:0.25rem; padding:0.5rem; border-radius:0.75rem; color:#9ca3af; font-size:0.625rem; transition:all 0.15s; }
+        .mobile-nav-link.active { color:#2563eb; }
+        .dark .mobile-nav-link.active { color:#60a5fa; }
+        .toast-enter { animation: toastIn 0.3s ease-out; }
+        .toast-exit { animation: toastOut 0.3s ease-in forwards; }
+        @@keyframes toastIn { from { opacity:0; transform:translateX(100px); } to { opacity:1; transform:translateX(0); } }
+        @@keyframes toastOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(100px); } }
+        .skeleton { background:linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:0.5rem; }
+        .dark .skeleton { background:linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%); background-size:200% 100%; }
+        @@keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+        .input-error { border-color:#ef4444 !important; background:#fef2f2 !important; }
+        .dark .input-error { border-color:#f87171 !important; background:#450a0a !important; }
+        @@keyframes bounceIn { 0%{opacity:0;transform:scale(0.9)} 50%{transform:scale(1.02)} 100%{opacity:1;transform:scale(1)} }
+        .animate-bounce-in { animation:bounceIn 0.25s ease-out; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen antialiased">
+    @{
+        var isLoginPage = ViewContext.RouteData.Values["controller"]?.ToString() == "Auth";
+        var isAdmin = Context.Session.GetString("IsAdmin") == "true";
+    }
+
+    @if (isLoginPage)
+    {
+        @RenderBody()
+    }
+    else if (!isAdmin)
+    {
+        <!-- Redirect handled by auth check in each controller -->
+        @RenderBody()
+    }
+    else
+    {
+        <!-- Header -->
+        <header class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 sticky top-0 z-20">
+            <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+                <div class="flex items-center gap-2 md:ml-56">
+                    <span class="text-xl">💰</span>
+                    <span class="font-bold text-gray-800 dark:text-gray-100 text-sm sm:text-base">Quản Lý Chi Tiêu</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <button onclick="toggleTheme()" class="p-2 rounded-xl text-lg hover:bg-gray-100 dark:hover:bg-gray-800 active:scale-90 transition-all">
+                        <span id="themeIcon">@(Context.Session.GetString("Theme") == "dark" ? "☀️" : "🌙")</span>
+                    </button>
+                    <a href="/Auth/Logout" class="btn-ghost text-sm">Đăng xuất</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-6xl mx-auto flex">
+            <!-- Sidebar (Desktop) -->
+            <aside class="hidden md:block w-56 fixed left-0 top-14 bottom-0 bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 p-4 overflow-y-auto">
+                <nav class="space-y-1">
+                    @await Html.PartialAsync("_Sidebar")
+                </nav>
+            </aside>
+
+            <!-- Main content -->
+            <main class="flex-1 md:ml-56 p-4 md:p-6 pb-24 md:pb-6">
+                @if (TempData["Success"] != null)
+                {
+                    <div id="toast" class="fixed top-4 right-4 z-50 bg-green-500 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-2 toast-enter">
+                        <span>✅</span> @TempData["Success"]
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div id="toast" class="fixed top-4 right-4 z-50 bg-red-500 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-2 toast-enter">
+                        <span>⚠️</span> @TempData["Error"]
+                    </div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+
+        <!-- Mobile Bottom Nav -->
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-800/50 z-20">
+            <div class="flex justify-around px-2 py-1">
+                @await Html.PartialAsync("_MobileNav")
+            </div>
+        </nav>
+    }
+
+    <script>
+        // Dark mode toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            if (isDark) {
+                html.classList.remove('dark');
+                document.getElementById('themeIcon').textContent = '🌙';
+                document.cookie = 'theme=light;path=/;max-age=31536000';
+            } else {
+                html.classList.add('dark');
+                document.getElementById('themeIcon').textContent = '☀️';
+                document.cookie = 'theme=dark;path=/;max-age=31536000';
+            }
+        }
+
+        // Form validation - highlight empty required fields
+        document.querySelectorAll('form').forEach(f => {
+            f.addEventListener('submit', function(e) {
+                let valid = true;
+                this.querySelectorAll('[required]').forEach(el => {
+                    if (!el.value.trim()) { el.classList.add('input-error'); valid = false; }
+                    else el.classList.remove('input-error');
+                });
+                if (!valid) { e.preventDefault(); showToast('⚠️ Vui lòng điền đầy đủ thông tin bắt buộc.', 'error'); }
+            });
+        });
+
+        // Global toast function
+        function showToast(msg, type) {
+            const existing = document.querySelector('.toast-enter');
+            if (existing) existing.remove();
+            const t = document.createElement('div');
+            t.className = 'fixed top-4 right-4 z-50 px-5 py-3 rounded-xl shadow-xl flex items-center gap-2 toast-enter ' + (type==='error'?'bg-red-500':'bg-green-500');
+            t.style.color = '#fff';
+            t.innerHTML = (type==='error'?'<span>⚠️</span> ':'<span>✅</span> ') + msg;
+            document.body.appendChild(t);
+            setTimeout(() => { t.classList.add('toast-exit'); setTimeout(()=>t.remove(),300); }, 3000);
+        }
+
+        // Custom confirm dialog
+        function showConfirm(msg, onOk) {
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm';
+            overlay.innerHTML = `<div class="card-glass max-w-sm mx-4 text-center animate-bounce-in">
+                <p class="text-gray-800 dark:text-gray-200 mb-4">${msg}</p>
+                <div class="flex gap-3 justify-center">
+                    <button class="btn-ghost text-sm" id="cfmNo">Hủy</button>
+                    <button class="bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-red-600" id="cfmYes">Xác nhận</button>
+                </div>
+            </div>`;
+            document.body.appendChild(overlay);
+            overlay.querySelector('#cfmNo').onclick = () => overlay.remove();
+            overlay.querySelector('#cfmYes').onclick = () => { overlay.remove(); onOk(); };
+            overlay.onclick = (e) => { if(e.target===overlay) overlay.remove(); };
+        }
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

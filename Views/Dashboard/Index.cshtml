@@ -1,0 +1,138 @@
+@model QuanLyChiTieu.Mvc.Models.ViewModels.DashboardVm
+@{
+    ViewData["Title"] = "Tổng quan";
+    var jsonOpts = new System.Text.Json.JsonSerializerOptions();
+    jsonOpts.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    var jsonData = System.Text.Json.JsonSerializer.Serialize(Model, jsonOpts);
+}
+
+<div class="space-y-6">
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="card-glass">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Thu nhập tháng này</p>
+            <p id="totalIncome" class="text-2xl font-bold text-income">--</p>
+        </div>
+        <div class="card-glass">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Chi tiêu tháng này</p>
+            <p id="totalExpense" class="text-2xl font-bold text-expense">--</p>
+        </div>
+        <div class="card-glass">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Số dư</p>
+            <p id="balance" class="text-2xl font-bold text-income">--</p>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Bar Chart -->
+        <div class="card-glass">
+            <h2 class="font-semibold text-gray-700 dark:text-gray-200 mb-4">📊 Thu nhập & Chi tiêu 6 tháng gần đây</h2>
+            <div class="h-64">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Pie Chart: Expense -->
+        <div class="card-glass">
+            <h2 class="font-semibold text-gray-700 dark:text-gray-200 mb-4">🍩 Chi tiêu theo danh mục (tháng này)</h2>
+            <div class="h-64">
+                <canvas id="expensePie"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="card-glass">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="font-semibold text-gray-700 dark:text-gray-200">📝 Giao dịch gần đây</h2>
+            <a href="/GiaoDich/Index" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">Xem tất cả →</a>
+        </div>
+        <div id="recentTx" class="space-y-2"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script>
+        const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+        const data = @Html.Raw(jsonData);
+
+        function animateValue(id, start, end, duration, callback) {
+            const el = document.getElementById(id);
+            const range = end - start;
+            const startTime = performance.now();
+            function step(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const val = Math.round(start + range * progress);
+                el.textContent = fmt(val);
+                if (progress < 1) requestAnimationFrame(step);
+                else if (callback) callback();
+            }
+            requestAnimationFrame(step);
+        }
+
+        // Render charts with server data
+        (function render() {
+            animateValue('totalIncome', 0, data.totalIncome, 800);
+            animateValue('totalExpense', 0, data.totalExpense, 800);
+            const bal = data.balance;
+            const balEl = document.getElementById('balance');
+            animateValue('balance', 0, bal, 800, () => {
+                balEl.className = 'text-2xl font-bold ' + (bal >= 0 ? 'text-income' : 'text-expense');
+            });
+
+            const barData = data.monthlySummaries.slice(0, 6).reverse();
+            if (barData.length > 0 && barData.some(d => d.totalIncome > 0 || d.totalExpense > 0)) {
+                new Chart(document.getElementById('barChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: barData.map(m => m.month.slice(5)),
+                        datasets: [
+                            { label: 'Thu nhập', data: barData.map(m => m.totalIncome), backgroundColor: '#22c55e', borderRadius: 4 },
+                            { label: 'Chi tiêu', data: barData.map(m => m.totalExpense), backgroundColor: '#ef4444', borderRadius: 4 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { y: { ticks: { callback: v => (v/1e6).toFixed(0)+'M' } } },
+                        plugins: { tooltip: { callbacks: { label: ctx => fmt(ctx.raw) } } }
+                    }
+                });
+            }
+
+            const expData = data.expenseByCategory;
+            if (expData.length > 0) {
+                new Chart(document.getElementById('expensePie'), {
+                    type: 'pie',
+                    data: {
+                        labels: expData.map(e => e.categoryName),
+                        datasets: [{ data: expData.map(e => e.total), backgroundColor: expData.map(e => e.categoryColor) }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { tooltip: { callbacks: { label: ctx => ctx.label + ': ' + fmt(ctx.raw) + ' (' + expData[ctx.dataIndex].percentage + '%)' } } }
+                    }
+                });
+            }
+
+            const txContainer = document.getElementById('recentTx');
+            data.recentTransactions.forEach(tx => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">${tx.categoryIcon || '\uD83D\uDCCC'}</span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800 dark:text-gray-200">${tx.categoryName || 'Kh\u00F4ng danh m\u1EE5c'}</p>
+                            <p class="text-xs text-gray-400">${tx.description || ''} \u00B7 ${tx.transactionDate}</p>
+                        </div>
+                    </div>
+                    <span class="${tx.type === 'income' ? 'text-income' : 'text-expense'} font-semibold text-sm">${tx.type === 'income' ? '+' : '-'}${fmt(tx.amount)}</span>
+                `;
+                txContainer.appendChild(div);
+            });
+        })();
+    </script>
+}

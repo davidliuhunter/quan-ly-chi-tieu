@@ -1,0 +1,23 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<a href="/Dashboard/Index" class="sidebar-link @(currentController == "Dashboard" ? "active" : "")">
+    <span>📊</span> Tổng quan
+</a>
+<a href="/GiaoDich/Index" class="sidebar-link @(currentController == "GiaoDich" ? "active" : "")">
+    <span>💳</span> Giao dịch
+</a>
+<a href="/NganSach/Index" class="sidebar-link @(currentController == "NganSach" ? "active" : "")">
+    <span>🎯</span> Ngân sách
+</a>
+<a href="/MucTieu/Index" class="sidebar-link @(currentController == "MucTieu" ? "active" : "")">
+    <span>🏆</span> Mục tiêu
+</a>
+<a href="/DinhKy/Index" class="sidebar-link @(currentController == "DinhKy" ? "active" : "")">
+    <span>🔄</span> Định kỳ
+</a>
+<a href="/DanhMuc/Index" class="sidebar-link @(currentController == "DanhMuc" ? "active" : "")">
+    <span>⚙️</span> Danh mục
+</a>

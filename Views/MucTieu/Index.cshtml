@@ -1,0 +1,106 @@
+@model List<QuanLyChiTieu.Mvc.Models.Entities.MucTieu>
+@{
+    ViewData["Title"] = "Mục tiêu";
+    var totalSaved = Model.Sum(m => m.CurrentAmount);
+    var totalTarget = Model.Sum(m => m.TargetAmount);
+    var overallPct = totalTarget > 0 ? (int)(totalSaved * 100 / totalTarget) : 0;
+}
+
+<div class="space-y-4">
+    <div class="flex items-center justify-between">
+        <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100">🏆 Mục tiêu tiết kiệm</h1>
+        <button onclick="openForm()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 active:scale-95 transition-all">+ Thêm mới</button>
+    </div>
+
+    <!-- Overall progress -->
+    @if (Model.Count > 0)
+    {
+        <div class="card-glass">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Tổng tiến độ</p>
+            <p class="text-2xl font-bold text-income">@totalSaved.ToString("N0")₫ <span class="text-sm text-gray-400 font-normal">/ @totalTarget.ToString("N0")₫</span></p>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mt-2">
+                <div class="h-3 rounded-full bg-blue-500 transition-all" style="width:@overallPct%"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">@overallPct%</p>
+        </div>
+    }
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        @foreach (var goal in Model)
+        {
+            var pct = goal.TargetAmount > 0 ? (int)(goal.CurrentAmount * 100 / goal.TargetAmount) : 0;
+            var daysLeft = goal.Deadline.HasValue ? (goal.Deadline.Value.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days : (int?)null;
+            <div class="card-glass @(goal.IsCompleted ? "opacity-60" : "")">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">@goal.Icon</span>
+                        <span class="text-sm font-medium text-gray-800 dark:text-gray-200">@goal.Name @(goal.IsCompleted ? "✅" : "")</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="editGoal('@goal.Id','@goal.Name',@goal.TargetAmount,@goal.CurrentAmount,'@(goal.Deadline?.ToString("yyyy-MM-dd") ?? "")','@goal.Icon','@goal.Color')" class="btn-ghost btn-sm">✏️</button>
+                        <form method="post" action="/MucTieu/Delete" style="display:inline">
+                            <input type="hidden" name="id" value="@goal.Id" />
+                            <button type="button" class="btn-ghost btn-sm text-red-500" onclick="showConfirm('Xóa mục tiêu này?',()=>this.form.submit())">🗑️</button>
+                        </form>
+                    </div>
+                </div>
+                <p class="text-sm font-semibold text-income">@goal.CurrentAmount.ToString("N0")₫ / @goal.TargetAmount.ToString("N0")₫</p>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-1">
+                    <div class="h-2.5 rounded-full transition-all" style="width:@pct%;background:@goal.Color"></div>
+                </div>
+                <div class="flex justify-between mt-1">
+                    <span class="text-xs text-gray-400">@pct%</span>
+                    @if (daysLeft.HasValue)
+                    {
+                        <span class="text-xs @(daysLeft < 0 ? "text-red-500" : "text-gray-400")">@(daysLeft < 0 ? $"Quá hạn {Math.Abs(daysLeft.Value)} ngày" : $"Còn {daysLeft.Value} ngày")</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div class="card-glass w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h3 id="modalTitle" class="font-semibold text-gray-800 dark:text-gray-100">Thêm mục tiêu</h3>
+            <button onclick="closeForm()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        </div>
+        <form id="goalForm" method="post" class="space-y-4">
+            <input type="hidden" name="Id" id="goalId" />
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tên mục tiêu</label><input name="Name" id="goalName" class="input-field" placeholder="VD: Mua laptop" required /></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Số tiền mục tiêu</label><input name="TargetAmount" id="goalTarget" type="number" class="input-field" placeholder="VD: 20000000" required min="1" /></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Đã tiết kiệm</label><input name="CurrentAmount" id="goalCurrent" type="number" class="input-field" value="0" min="0" /></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Hạn chót</label><input name="Deadline" id="goalDeadline" type="date" class="input-field" /></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Icon</label><input name="Icon" id="goalIcon" class="input-field" placeholder="🎯" maxlength="2" /></div>
+            <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Màu</label><input name="Color" id="goalColor" type="color" class="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer" /></div>
+            <button type="submit" class="bg-blue-600 text-white w-full px-4 py-2.5 rounded-xl font-medium hover:bg-blue-700 active:scale-95 transition-all">Lưu</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openForm() {
+            document.getElementById('modalTitle').textContent = 'Thêm mục tiêu';
+            document.getElementById('goalForm').action = '/MucTieu/Create';
+            document.getElementById('goalId').value = ''; document.getElementById('goalName').value = '';
+            document.getElementById('goalTarget').value = ''; document.getElementById('goalCurrent').value = '0';
+            document.getElementById('goalDeadline').value = ''; document.getElementById('goalIcon').value = '🎯';
+            document.getElementById('goalColor').value = '#3b82f6';
+            document.getElementById('modal').classList.remove('hidden'); document.getElementById('modal').classList.add('flex');
+        }
+        function closeForm() { document.getElementById('modal').classList.add('hidden'); document.getElementById('modal').classList.remove('flex'); }
+        function editGoal(id, name, target, current, deadline, icon, color) {
+            document.getElementById('modalTitle').textContent = 'Sửa mục tiêu';
+            document.getElementById('goalForm').action = '/MucTieu/Edit';
+            document.getElementById('goalId').value = id; document.getElementById('goalName').value = name;
+            document.getElementById('goalTarget').value = target; document.getElementById('goalCurrent').value = current;
+            document.getElementById('goalDeadline').value = deadline; document.getElementById('goalIcon').value = icon;
+            document.getElementById('goalColor').value = color;
+            document.getElementById('modal').classList.remove('hidden'); document.getElementById('modal').classList.add('flex');
+        }
+        document.getElementById('modal').addEventListener('click', function(e) { if (e.target === this) closeForm(); });
+    </script>
+}

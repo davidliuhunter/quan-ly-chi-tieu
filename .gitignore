@@ -1,53 +1,34 @@
-# Dependencies
-/node_modules/
-/src/node_modules/
-/.pnp
-/src/.pnp
-/.pnp.js
-/src/.pnp.js
-
-# Next.js
-/.next/
-/src/.next/
-/out/
-/src/out/
-
-# Env
-.env.local
-.env*.local
-.env
-/src/.env.local
-/src/.env*.local
-/src/.env
-
-# Vercel
-/.vercel/
-/src/.vercel/
-
-# TS cache
-*.tsbuildinfo
-/src/*.tsbuildinfo
-
-# Playwright
-/test-results/
-/playwright-report/
-/test-*.log
-/test-*.txt
-/test-*.json
-/build-log.txt
-
-# Logs
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
 *.log
+.vs/
 
-# Editor
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
+
+# Playwright / Node
+node_modules/
+test-results/
+playwright-report/
+
+# Build output
+build-out.txt
+build.txt
+test-results.txt
+test-run-result.txt
+
+# IDE
 .vscode/
 .idea/
 *.swp
-.DS_Store
-Thumbs.db
 
-# Project docs (local only)
-DEPLOY.md
-DEV-COMMANDS.md
-PROJECT-INFO.md
-LOCAL-SECRETS.md
+# Environment
+.env
+.env.local
+*.Development.json
